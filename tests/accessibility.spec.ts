@@ -42,4 +42,45 @@ test.describe("Accessibility automation", () => {
 
     expect(emptyLabelLinks, `Links without visible text labels: ${emptyLabelLinks.join(", ")}`).toEqual([]);
   });
+
+  test("home page links should not use missing or placeholder href values", async ({ page }) => {
+    await page.goto("/");
+
+    const invalidHrefLinks = await page.locator("a").evaluateAll((links) => {
+      return links
+        .map((link) => {
+          const href = link.getAttribute("href");
+          const normalizedHref = href?.trim().toLowerCase() ?? "";
+          const isInvalid =
+            normalizedHref.length === 0 ||
+            normalizedHref === "#" ||
+            normalizedHref === "javascript:void(0)" ||
+            normalizedHref === "javascript:;";
+
+          if (!isInvalid) {
+            return null;
+          }
+
+          const label = link.textContent?.trim() || link.getAttribute("aria-label") || "(no label)";
+          return `${label} -> ${href ?? "(no href)"}`;
+        })
+        .filter((entry): entry is string => entry !== null);
+    });
+
+    expect(
+      invalidHrefLinks,
+      `Links with missing or placeholder href values: ${invalidHrefLinks.join(", ")}`
+    ).toEqual([]);
+  });
+
+  test("home page links should have accessible names", async ({ page }) => {
+    await page.goto("/");
+
+    const links = page.getByRole("link");
+    const linkCount = await links.count();
+
+    for (let index = 0; index < linkCount; index++) {
+      await expect(links.nth(index)).toHaveAccessibleName(/\S/);
+    }
+  });
 });
