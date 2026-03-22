@@ -4,11 +4,11 @@ export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
   retries: 0,
-  reporter: [["html", { open: "never" }], ["list"]],
+  reporter: [["html", { open: "never", title: "Accessibility Test Report" }], ["list"]],
   use: {
     baseURL: "https://example.com",
     trace: "on-first-retry",
-    screenshot: "only-on-failure",
+    screenshot: "on",
     video: "retain-on-failure",
   },
 });
